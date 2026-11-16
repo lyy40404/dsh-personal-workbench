@@ -16,8 +16,8 @@ import {
   ENTRY_LOCALE_STORAGE_KEY, entryLocaleFor, entryTextFor,
 } from '../lib/client/entryLocale.js'
 
-const ENTRY_TITLE_ZH = '打开工作台（任务 / 日历 / 知识库 / 点子）'
-const ENTRY_TITLE_EN = 'Open Workbench (tasks / calendar / knowledge / ideas)'
+const ENTRY_TITLE_ZH = '工作台'
+const ENTRY_TITLE_EN = 'Workbench'
 
 function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -50,9 +50,9 @@ test('入口文案只有一处中文原文：注册与标题栏共用同一个�
   // 定义处恰好一处（`entryContract.ts`）；英文表在 src/shared，不算客户端的第二份。
   assertClientCount(assert, new RegExp(escapeRegExp(`'${ENTRY_TITLE_ZH}'`), 'g'), 1,
     '入口文案在客户端源码里只能定义一次')
-  // 两个渲染点都必须是 entryText(ENTRY_TITLE_KEY)：侧栏注册 + 会话标题栏按钮的 title。
-  assertClientCount(assert, /entryText\(ENTRY_TITLE_KEY\)/g, 2,
-    '侧栏注册与会话标题栏必须都走 entryText(ENTRY_TITLE_KEY)')
+  // 三个渲染点都必须是 entryText(ENTRY_TITLE_KEY)：侧栏注册 + 会话标题栏按钮的 title + 按钮可见文字。
+  assertClientCount(assert, /entryText\(ENTRY_TITLE_KEY\)/g, 3,
+    '侧栏注册、会话标题栏 title 与按钮文字必须都走 entryText(ENTRY_TITLE_KEY)')
   assert.ok(!read('src/client/index.tsx').includes(`'${ENTRY_TITLE_ZH}'`),
     'index.tsx 不许再内联这条文案（注册与查询各算一次就是 issue #12 的老坑）')
 })

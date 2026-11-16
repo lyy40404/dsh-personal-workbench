@@ -8,8 +8,8 @@
  * 搬出来是为了让 hook、视图与入口共用同一份声明，而不是各写一份形状相同的匿名类型。
  */
 
-/** 左侧主视图（拆分前是 `index.tsx` 里 `useState` 的内联联合类型，逐字保留）。 */
-export type WorkbenchView = 'today' | 'calendar' | 'list' | 'knowledge' | 'ideas'
+/** 左侧主视图（拆分前是 `index.tsx` 里 `useState` 的内联联合类型，逐字保留；`timetable` 为 schema 20 新增）。 */
+export type WorkbenchView = 'today' | 'calendar' | 'timetable' | 'list' | 'knowledge' | 'ideas'
 
 /**
  * 「编辑任务」表单草稿（拆分前是入口 `useState<{ … } | null>` 的内联对象类型，逐字保留）。
@@ -29,4 +29,6 @@ export interface TaskEditDraft {
   parentId: string
   estimatedMinutes: string
   allDay: boolean
+  /** 所属课程 id（schema 21）；空串 = 不关联。 */
+  courseId: string
 }

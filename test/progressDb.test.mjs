@@ -81,7 +81,8 @@ test('迁移 19：旧任务（含 done）一律 progress=0，原字段不变，�
 
     migrate(db)
 
-    assert.equal(SCHEMA_VERSION, 19)
+    // 迁移链跑到最新版（schema 20 起含课表 courses 表，21 起含任务↔课程关联）；这里只锁"迁移确实跑到了最新"。
+    assert.equal(SCHEMA_VERSION, 21)
     for (const id of ['t-todo', 't-doing', 't-done']) {
       const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)
       assert.equal(row.progress_percent, 0, `${id} 的旧进度必须是 0（不反推）`)
@@ -363,12 +364,12 @@ test('listPendingCompletions: 一次查询给出全部待验收；deferred 仍�
   }
 })
 
-test('openWorkbenchDb 全新库即 schema 19，且旧客户端省略 progressPercent 仍可读写', () => {
+test('openWorkbenchDb 全新库即 schema 21，且旧客户端省略 progressPercent 仍可读写', () => {
   const db = openWorkbenchDb({ dbPath: ':memory:' })
   try {
     seedDictionaries(db)
     const version = db.prepare("SELECT value FROM meta WHERE key = 'schema_version'").get()
-    assert.equal(Number(version.value), 19)
+    assert.equal(Number(version.value), 21)
     const task = createTask(db, { title: '任务', typeCode: 'code_impl', priorityCode: 'p1' })
     // 老调用点（不带 progressPercent 的 patch）照常工作，进度保持原值
     setTaskProgress(db, task.id, 40)

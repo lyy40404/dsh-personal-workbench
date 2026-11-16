@@ -104,7 +104,7 @@ export function officialPanelRowRendered(root: ParentNode, label: string): boole
  * ⚠️ 注册与 `officialPanelRowRendered` 的查询必须用**同一个解析结果**
  * （都取 `entryText(ENTRY_TITLE_KEY)`），否则按 aria-label 找那一行会永远找不到。
  */
-export const ENTRY_TITLE_KEY = '打开工作台（任务 / 日历 / 知识库 / 点子）'
+export const ENTRY_TITLE_KEY = '工作台'
 
 /**
  * `--wb-*` 令牌层：**每一项都带回退值，且回退值跟随明暗**。

@@ -1,5 +1,10 @@
 # dsh-personal-workbench
 
+> **本仓库是上游的修改版（fork）。** 来源：[Dely0/dsh-personal-workbench](https://github.com/Dely0/dsh-personal-workbench)（v1.17.2，MIT，作者 Du Penglai）。
+> 相对上游的改动：课程表视图与任务-课程关联（schema 20 `courses-timetable`、21 `task-course-link`）、
+> 学业 / 写作六个专家角色、入口标题改为「工作台」。上游其他贡献者（SnowNight777 等）与第三方素材授权见
+> [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
+
 [![npm version](https://img.shields.io/npm/v/@dely0/dsh-personal-workbench)](https://www.npmjs.com/package/@dely0/dsh-personal-workbench)
 [![license](https://img.shields.io/npm/l/@dely0/dsh-personal-workbench)](./LICENSE)
 

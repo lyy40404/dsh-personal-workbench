@@ -28,6 +28,7 @@ import { makeQuickAttachmentRoutes } from './routes/quick-attachments.js'
 import { makeReminderRoutes, type ReminderRouteDeps } from './routes/reminders.js'
 import { makeReportRoutes } from './routes/reports.js'
 import { makeTaskRoutes } from './routes/tasks.js'
+import { makeCourseRoutes } from './routes/courses.js'
 import type { TeamMemoryService } from '../review-memory.js'
 import { teamMemoryAvailable } from '../review-memory.js'
 import type { ExpertService } from '../experts/service.js'
@@ -402,6 +403,7 @@ export function makeRoutes(db: DatabaseSync, deps: WorkbenchRouteDeps = {}): Web
       },
     },
     ...makeTaskRoutes(db),
+    ...makeCourseRoutes(db),
     // ------------------------------------------------------------------ maintenance
     {
       kind: 'exact',

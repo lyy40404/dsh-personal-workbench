@@ -16,12 +16,21 @@ import { CapacityRulePanel, capacityAriaLabel } from '../components/CapacityRule
 import { DayPanel, type DayPanelProps } from '../components/DayPanel.js'
 import { Icon } from '../components/Icon.js'
 import type { CapacityLedger } from '../capacity.js'
-import type { Bootstrap } from '../viewTypes.js'
+import type { Bootstrap, Course } from '../viewTypes.js'
+import { formatRemaining, minutesNow, nextCourse, ongoingCourse, type DayCourseEntry } from '../courseGrid.js'
 import { useI18n } from '../i18n.js'
 
 export type TodayPaneProps = {
   /** 今日统计（`bootstrap.stats`；首屏未加载时为 `undefined`，渲染 0）。 */
   stats: Bootstrap['stats'] | undefined
+  /**
+   * 今天的课（装配层用 `coursesOnDate` 算好）。
+   *
+   * 为什么放在今日视图最上面：学生打开工作台第一件事是"今天几点上什么"，
+   * 而不是今天有几条任务。空数组 = 今天没课（或还没开学），整块不渲染。
+   */
+  todayCourses: Array<DayCourseEntry<Course>>
+  now: Date
   capacity: CapacityLedger
   /** 行内编辑「可投入时长」的临时值（`null` = 只读展示）。 */
   capacityEdit: string | null
@@ -52,8 +61,23 @@ export function TodayPane(props: TodayPaneProps): JSX.Element {
     stats, capacity, capacityEdit, dailyCapacityMinutes, defaultEstimateMinutes, includeOverdue,
     capacityExpanded, onCapacityEditStart, onCapacityEditChange, onCapacityEditCommit, onCapacityEditCancel,
     onIncludeOverdueChange, onCapacityExpandedChange, onAddToPlan, addingTaskId, dayPanelProps,
-    onQuickEntry, onNewTask,
+    onQuickEntry, onNewTask, todayCourses, now,
   } = props
+
+  /**
+   * 正在上 / 下一节的状态条。
+   *
+   * 判定全在 `courseGrid.ts` 的纯函数里（`ongoingCourse` / `nextCourse`），
+   * 这里只把结果拼成一句话 —— 组件不做"当前第几节"的判断。
+   */
+  const nowMinutes = minutesNow(now)
+  const ongoing = ongoingCourse(todayCourses, nowMinutes)
+  const upcoming = nextCourse(todayCourses, nowMinutes)
+  const statusBanner = ongoing !== null
+    ? `正在上：${ongoing.course.name}${ongoing.endMinutes !== null ? `（还有 ${formatRemaining(ongoing.endMinutes - nowMinutes)} 下课）` : ''}`
+    : upcoming !== null
+      ? `下一节 ${upcoming.timeLabel !== '' ? upcoming.timeLabel.split('–')[0] : ''} ${upcoming.course.name}（还有 ${formatRemaining((upcoming.startMinutes ?? nowMinutes) - nowMinutes)}）`
+      : ''
 
   return (
     <>
@@ -63,6 +87,34 @@ export function TodayPane(props: TodayPaneProps): JSX.Element {
         <div className="wb-stat"><b>{stats?.doing ?? 0}</b><span>{t('进行中')}</span></div>
         <div className="wb-stat"><b>{stats?.total ?? 0}</b><span>{t('总数')}</span></div>
       </div>
+
+      {/**
+        * 今天的课（schema 20）：放在统计卡下方、容量卡上方。
+        *
+        * 位置的理由：学生打开工作台第一眼看的是"今天几点上什么"，
+        * 不是"今天有几条任务"。没有课时整块不渲染（不占位、不显示空态文案）。
+        */}
+      {todayCourses.length > 0 && (
+        <div className="wb-today-courses">
+          <div className="wb-today-courses-head">
+            <h3>{t('今天的课')}</h3>
+            {statusBanner !== '' && <span className={`wb-today-next${ongoing !== null ? ' ongoing' : ''}`}>{statusBanner}</span>}
+          </div>
+          <div className="wb-today-course-list">
+            {todayCourses.map((entry) => (
+              <div
+                key={entry.course.id}
+                className={`wb-today-course${ongoing !== null && ongoing.course.id === entry.course.id ? ' ongoing' : ''}`}
+                title={`${entry.course.name}${entry.course.location !== '' ? ` · ${entry.course.location}` : ''}${entry.course.teacher !== '' ? ` · ${entry.course.teacher}` : ''}`}
+              >
+                <span className="wb-today-course-time">{entry.timeLabel}</span>
+                <span className="wb-today-course-name">{entry.course.name}</span>
+                <span className="wb-today-course-place">{entry.course.location}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/*
         今日容量（v1.15.1）：把"今天投得进多少时间"及其**算法**显式化。

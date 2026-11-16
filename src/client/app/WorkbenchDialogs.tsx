@@ -266,6 +266,7 @@ export function WorkbenchDialogs(props: WorkbenchAssembly): JSX.Element {
         formWorkspace={formWorkspace}
         onFormWorkspaceChange={forms.actions.setFormWorkspace}
         onBrowseWorkspace={() => openDirPicker('form')}
+        courses={props.timetable.courses}
         busy={busy}
       />
 
@@ -283,6 +284,7 @@ export function WorkbenchDialogs(props: WorkbenchAssembly): JSX.Element {
           onBrowseWorkspace={() => openDirPicker('edit')}
           busy={busy}
           reparentCandidates={reparentCandidates}
+          courses={props.timetable.courses}
         />
       )}
       {pendingOpen && (

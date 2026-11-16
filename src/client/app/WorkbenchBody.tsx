@@ -13,6 +13,10 @@ import { SettingsModal } from '../components/SettingsModal.js'
 import { startOfWeek } from '../format.js'
 import { readNotificationCtor, requestNotificationPermission, sendSystemNotification } from '../notificationCapability.js'
 import { CalendarView } from '../views/CalendarView.js'
+import { TimetableView } from '../views/TimetableView.js'
+import { CourseEditorModal, TimetableSettingsModal } from '../views/TimetableDialogs.js'
+import { parseDateKey } from '../hooks/useTimetable.js'
+import { coursesOnDate } from '../courseGrid.js'
 import { IdeasDetailPane } from '../views/IdeasDetailPane.js'
 import { IdeasListView } from '../views/IdeasListView.js'
 import { KnowledgeDetailPane } from '../views/KnowledgeDetailPane.js'
@@ -39,6 +43,24 @@ export function WorkbenchBody(props: WorkbenchAssembly): JSX.Element {
   const { notifyPerm, reminderBusy, reminderChannel, reminderOptions, reminderPolicy } = props.remindersApi
   const { addTaskReminder, loadReminderChannel, resetReminderState, saveReminderPolicy, saveReminderTarget, sendReminderTest, setNotifyPerm, setReminderChannel, setReminderPolicy } = props.remindersApi.actions
   const { aiSessionUsable, dayPanelProps, detail, forms, ideas, knowledge, linkExistingSession, linkedSessionIds, now, openQuickEntry, openTask, openTaskById, runtime, saveDailyCapacity, sessionCandidates, sessionListSnapshot, taskList } = props
+  /**
+   * 课表域（schema 20）。`settings` 这个名字已经被设置域占了，这里一律用 `timetableSettings`，
+   * 免得两处 `settings` 混用（本项目 §0 的"同一个名字两个语义"）。
+   */
+  const { courses, settings: timetableSettings, weekNumber, editor: courseEditor, settingsOpen: timetableSettingsOpen } = props.timetable
+  const timetableActions = props.timetable.actions
+  /**
+   * 今天的课（今日视图顶部那块）。
+   *
+   * 判定全在 `courseGrid.ts#coursesOnDate`（纯函数，有单测）；
+   * 这里只把"学期快照"折成它的入参。周次越界 / 未开学时它返回空数组，界面不渲染整块。
+   */
+  const todayCourses = coursesOnDate(
+    courses,
+    now,
+    { semesterStart: parseDateKey(timetableSettings.semesterStart), totalWeeks: timetableSettings.totalWeeks },
+    timetableSettings.sectionTimes,
+  )
   return (
     <div className="wb-body">
         {draftProblems.length > 0 && (
@@ -151,6 +173,37 @@ export function WorkbenchBody(props: WorkbenchAssembly): JSX.Element {
           onClose={() => setShowSettings(false)}
         />
       )}
+
+          {/* 课表的两个弹窗：课程编辑（新建/编辑共用）与学期设置 */}
+          <CourseEditorModal
+            editor={courseEditor}
+            settingsOpen={timetableSettingsOpen}
+            settings={timetableSettings}
+            busy={busy}
+            tasks={tasks}
+            onOpenTask={openTaskById}
+            onPatchEditor={timetableActions.patchEditor}
+            onSaveEditor={() => void timetableActions.saveEditor()}
+            onCloseEditor={timetableActions.closeEditor}
+            onRemoveCourse={(id) => void timetableActions.removeCourse(id)}
+            onCloseSettings={timetableActions.closeSettings}
+            onSaveSettings={(input) => void timetableActions.saveSettings(input)}
+          />
+          <TimetableSettingsModal
+            editor={courseEditor}
+            settingsOpen={timetableSettingsOpen}
+            settings={timetableSettings}
+            busy={busy}
+            tasks={tasks}
+            onOpenTask={openTaskById}
+            onPatchEditor={timetableActions.patchEditor}
+            onSaveEditor={() => void timetableActions.saveEditor()}
+            onCloseEditor={timetableActions.closeEditor}
+            onRemoveCourse={(id) => void timetableActions.removeCourse(id)}
+            onCloseSettings={timetableActions.closeSettings}
+            onSaveSettings={(input) => void timetableActions.saveSettings(input)}
+          />
+
           {view === 'today' && (
             <TodayPane
               stats={bootstrap?.stats}
@@ -171,6 +224,8 @@ export function WorkbenchBody(props: WorkbenchAssembly): JSX.Element {
               dayPanelProps={dayPanelProps}
               onQuickEntry={openQuickEntry}
               onNewTask={() => forms.actions.toggleCreate()}
+              todayCourses={todayCourses}
+              now={now}
             />
           )}
           {view === 'calendar' && (
@@ -194,8 +249,25 @@ export function WorkbenchBody(props: WorkbenchAssembly): JSX.Element {
             />
           )}
 
-          {view === 'knowledge' && <KnowledgeListView model={knowledge} dictOf={dictOf} busy={busy} />}
+          {view === 'timetable' && (
+            <TimetableView
+              courses={courses}
+              weekNumber={weekNumber}
+              totalWeeks={timetableSettings.totalWeeks}
+              semesterStart={parseDateKey(timetableSettings.semesterStart)}
+              sectionTimes={timetableSettings.sectionTimes}
+              now={now}
+              tasks={tasks}
+              onMoveWeek={timetableActions.moveWeek}
+              onToday={timetableActions.goToday}
+              onOpenSettings={timetableActions.openSettings}
+              onOpenCourse={timetableActions.openEdit}
+              onNewCourse={timetableActions.openNew}
+              onPickDay={(day) => { setPicked(parseDateKey(day)); setView('calendar') }}
+            />
+          )}
 
+          {view === 'knowledge' && <KnowledgeListView model={knowledge} dictOf={dictOf} busy={busy} />}
           {view === 'ideas' && <IdeasListView model={ideas} dictOf={dictOf} busy={busy} startAISession={startAISession} />}
 
           {view === 'list' && <TaskListView model={taskList} dictOf={dictOf} dicts={dicts} selectedId={selected?.task.id} pending={pendingMap} childrenOf={childrenOf} onOpen={openTask} />}

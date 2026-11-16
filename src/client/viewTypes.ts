@@ -26,6 +26,8 @@ export interface Task {
   effectiveWorkspacePath: string | null
   /** 显式进度 0–99（`100` 不落库，见 `shared/taskProgress.ts`）。旧服务端不下发时为 undefined。 */
   progressPercent?: number
+  /** 所属课程 id（schema 21；旧服务端不下发时为 undefined，按"没有关联"处理）。 */
+  courseId?: string | null
   archived: boolean
   extra: Record<string, unknown>
   recurrenceCode: string | null
@@ -36,6 +38,35 @@ export interface Task {
   updatedAt: string
   completedAt: string | null
   cancelledAt: string | null
+}
+/**
+ * 课表里的一门课（schema 20）。
+ *
+ * `weekday` **0 = 周日**、`startSection` **1-based**、`weeks` **空数组 = 每周** ——
+ * 这三条与 `client/courseGrid.ts` 和 DB 的口径一致，改动要三处同步。
+ */
+export interface Course {
+  id: string
+  name: string
+  teacher: string
+  location: string
+  weekday: number
+  startSection: number
+  sectionCount: number
+  weeks: number[]
+  color: string | null
+  note: string
+  archived: number
+  createdAt: string
+  updatedAt: string
+}
+/** 课表设置（学期起始、总周数、节次时间表）；缺省值在 `courseGrid.ts`。 */
+export interface TimetableSettings {
+  /** 学期第一周的**周日**（YYYY-MM-DD）。 */
+  semesterStart: string
+  /** 学期总周数。 */
+  totalWeeks: number
+  sectionTimes: Array<{ index: number; start: string; end: string }>
 }
 /**
  * 计划项（视图侧）。

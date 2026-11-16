@@ -26,6 +26,7 @@ import { Icon } from './components/Icon.js'
 import { workspaceCandidates } from './workspacePicker.js'
 import { useKnowledge, type StartAISessionFn } from './hooks/useKnowledge.js'
 import { useIdeas } from './hooks/useIdeas.js'
+import { useTimetable } from './hooks/useTimetable.js'
 import { useTaskListModel } from './hooks/useTaskListModel.js'
 import { useTaskDetailModel } from './hooks/useTaskDetailModel.js'
 import { useTaskForms } from './hooks/useTaskForms.js'
@@ -464,6 +465,8 @@ function WorkbenchApp({ runtime, closePanel }: { runtime: WorkbenchRuntime; clos
         // 后者只影响展示与重复锚点（不改变容量计算）。
         estimatedMinutes,
         allDay: editDraft.allDay,
+        // 所属课程（schema 21）：空串 = 不关联。服务端校验课程存在性。
+        courseId: editDraft.courseId === '' ? null : editDraft.courseId,
       }
       // 自动生成的实例不允许改重复规则，编辑保存时也不提交该字段，从源头避免 400。
       if (selected.task.recurrenceMasterId === null) payload.recurrenceCode = editDraft.recurrenceCode
@@ -521,6 +524,19 @@ function WorkbenchApp({ runtime, closePanel }: { runtime: WorkbenchRuntime; clos
   // 技能过滤已收进 `SkillPicker` 组件内部（两个弹窗共用同一份，不再各写一份）
 
   const now = new Date()
+  /**
+   * 课表域（schema 20）：课程列表 / 周次游标 / 课程编辑草稿 / 学期设置。
+   *
+   * 与其他域一样常驻顶层：切视图不重置（从课表切去任务再回来，还停在原来那一周）。
+   * 调用点必须在 `now` 之后（`const` 没有提升，写早了就是 TDZ 崩）；
+   * `now` 用装配层的同一份快照，与日历视图同一口径，不各自读时钟。
+   */
+  const timetable = useTimetable({
+    activeView: view,
+    now,
+    setError: (message) => setError(message),
+    setNotice: (message) => setNotice(message),
+  })
   const todayStart = startOfDay(now)
   const todayEnd = new Date(todayStart); todayEnd.setDate(todayEnd.getDate() + 1)
   const todayPlan = bootstrap?.todayPlan ?? null
@@ -771,6 +787,7 @@ function WorkbenchApp({ runtime, closePanel }: { runtime: WorkbenchRuntime; clos
   const assembly: WorkbenchAssembly = {
     nav, data, forms, detail, taskList, day, quick, ai,
     prefs, dir, busyApi, remindersApi, draftsApi, knowledge, ideas, feedback, experts,
+    timetable,
     runtime, closePanel, loadModelModalityTable, aiSessionUsable,
     collapseAll, dayPanelProps, now, pendingCount, linkedSessionIds, sessionCandidates,
     sessionListSnapshot, reparentCandidates, workspaceChoices, openTask, openTaskById,
@@ -1125,7 +1142,7 @@ function WorkbenchHeaderEntry({ workbench }: { workbench: WorkbenchSlotApi }): J
       onClick={() => workbench.toggle()}
     >
       <Icon name="today" size={14} />
-      {entryText('工作台')}
+      {entryText(ENTRY_TITLE_KEY)}
     </button>
   )
 }

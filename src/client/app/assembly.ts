@@ -18,6 +18,7 @@ import type { useTaskData } from '../hooks/useTaskData.js'
 import type { useTaskDetailModel } from '../hooks/useTaskDetailModel.js'
 import type { useTaskForms } from '../hooks/useTaskForms.js'
 import type { useTaskListModel } from '../hooks/useTaskListModel.js'
+import type { useTimetable } from '../hooks/useTimetable.js'
 import type { useWorkbenchAISessions } from '../hooks/useWorkbenchAISessions.js'
 import type { useWorkbenchBusy } from '../hooks/useWorkbenchBusy.js'
 import type { useWorkbenchDirectoryPicker } from '../hooks/useWorkbenchDirectoryPicker.js'
@@ -62,6 +63,8 @@ export interface WorkbenchAssembly {
   knowledge: ReturnType<typeof useKnowledge>
   /** 点子域（D17/P2）。 */
   ideas: ReturnType<typeof useIdeas>
+  /** 课表域（schema 20）：课程列表 / 周次游标 / 课程编辑草稿 / 学期设置。 */
+  timetable: ReturnType<typeof useTimetable>
   /** 反馈域（D17/P5-1）：toast 宿主与三个写口。 */
   feedback: ReturnType<typeof useWorkbenchFeedback>
   /**

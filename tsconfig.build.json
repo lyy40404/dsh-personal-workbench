@@ -17,6 +17,8 @@
     "src/client/externalLink.ts",
     "src/client/inlineMarkdown.ts",
     "src/client/capacity.ts",
+    "src/client/courseGrid.ts",
+    "src/shared/timetable.ts",
     "src/client/dailyPlanPrompt.ts",
     "src/client/taskProgressView.ts",
     "src/client/personaPrompt.ts",

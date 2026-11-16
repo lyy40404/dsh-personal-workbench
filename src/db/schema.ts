@@ -4,7 +4,7 @@
  */
 import type { DatabaseSync } from 'node:sqlite'
 
-export const SCHEMA_VERSION = 19
+export const SCHEMA_VERSION = 21
 
 export interface Migration {
   version: number
@@ -584,6 +584,99 @@ export const MIGRATIONS: Migration[] = [
        */
       if (diagnostics.length > 0) {
         for (const line of diagnostics) console.warn(`[dsh-personal-workbench] migration 19: ${line}`)
+      }
+    },
+  },
+  {
+    version: 20,
+    name: 'courses-timetable',
+    up(db) {
+      /**
+       * 课表（schema 20）。
+       *
+       * ## 为什么是独立一张表，而不是「任务加时间块字段」
+       *
+       * 复刻的参照是企业微信/教务系统那种**节次网格课表**，不是任意时间块的日程：
+       * 一门课 = 星期几 + 从第几节 + 连续几节 + 在第几周上。它没有"完成/验收/进度"，
+       * 也不进今日容量账本，硬塞进 tasks 会让任务域的每一个判定多一条"这门课不算任务"的特例。
+       * 任务（作业、ddl）留在 tasks，课表上只做**标注**，两者通过日期关联而不是字段共享。
+       *
+       * ## 字段口径
+       *
+       * - `weekday`：**0 = 周日**，与课表列顺序一致（参照截图：周日 11-08 在最左）。
+       * - `start_section` / `section_count`：节次是 1-based 的整数，块高 = 节数 × 行高。
+       *   用节次而不是时分，是因为课表按"第几节"排布，不同学期节次时间会变。
+       * - `weeks_json`：上课周次数组（如 `[1,3,5,7]` 单周）。**空数组 = 每周都上**，
+       *   这样"全学期每周"不需要存 16 个数字，也不会因为总周数从 16 改到 18 而失效。
+       * - `color`：`NULL` = 按课程名自动分配（同一门课跨周同色）；用户手选后以手选为准。
+       *
+       * 张表只追加，不改旧迁移（本项目硬约束）。
+       */
+      db.exec(`
+        CREATE TABLE courses (
+          id            TEXT PRIMARY KEY,
+          name          TEXT NOT NULL,
+          teacher       TEXT NOT NULL DEFAULT '',
+          location      TEXT NOT NULL DEFAULT '',
+          weekday       INTEGER NOT NULL CHECK(weekday BETWEEN 0 AND 6),
+          start_section INTEGER NOT NULL CHECK(start_section BETWEEN 1 AND 20),
+          section_count INTEGER NOT NULL DEFAULT 2 CHECK(section_count BETWEEN 1 AND 12),
+          weeks_json    TEXT NOT NULL DEFAULT '[]',
+          color         TEXT,
+          note          TEXT NOT NULL DEFAULT '',
+          archived      INTEGER NOT NULL DEFAULT 0,
+          created_at    TEXT NOT NULL,
+          updated_at    TEXT NOT NULL
+        ) STRICT;
+        CREATE INDEX idx_courses_slot ON courses(weekday, start_section);
+        CREATE INDEX idx_courses_name ON courses(name);
+      `)
+    },
+  },
+  {
+    version: 21,
+    name: 'task-course-link',
+    up(db) {
+      /**
+       * 任务 → 课程的**结构化**关联（schema 21）。
+       *
+       * ## 为什么加字段而不是按标题匹配
+       *
+       * 课表里点一门课，要能列出"这门课的作业"。用 `tasks.title LIKE '%课程名%'` 去猜，
+       * 在真实数据上立刻会出事：`大学英语四级备考` 与 `通用英语1` 匹配不上（学生不会在作业标题里写全课程名），
+       * 而 `离散数学 第5次作业` 又可能同时命中两门名字相近的课 —— 猜错的关联比没有关联更糟，
+       * 用户以为看到了全部作业，实际漏了一半。
+       *
+       * ## 语义
+       *
+       * - `course_id` 可空：作业不一定属于某门课（个人事务、四级备考这类跨课程任务）；
+       * - `ON DELETE SET NULL`：删课不删作业，只是解除关联（静默丢件是禁区）；
+       * - 只加列 + 索引，不改旧行。
+       *
+       * ## 存量回填
+       *
+       * 迁移里**只做能确定的那一半**：任务的完整标题里包含课程名（`instr > 0`），
+       * 且只有一门课命中时才回填。命中多门（名字互为前缀）一律留空 —— 猜错不如不猜。
+       * 回填数量写日志，不落库（迁移时刻的观察属于运维信息）。
+       */
+      db.exec('ALTER TABLE tasks ADD COLUMN course_id TEXT REFERENCES courses(id) ON DELETE SET NULL')
+      db.exec('CREATE INDEX idx_tasks_course ON tasks(course_id)')
+      try {
+        const result = db.prepare(`
+          UPDATE tasks SET course_id = (
+            SELECT c.id FROM courses c
+            WHERE instr(tasks.title, c.name) > 0
+            ORDER BY length(c.name) DESC LIMIT 1
+          )
+          WHERE course_id IS NULL
+            AND (SELECT COUNT(*) FROM courses c WHERE instr(tasks.title, c.name) > 0) = 1
+        `).run()
+        if (Number(result.changes) > 0) {
+          console.warn(`[dsh-personal-workbench] migration 21: 按课程名回填了 ${result.changes} 条任务的课程关联（仅唯一命中）`)
+        }
+      } catch (error) {
+        // 回填是尽力而为：表结构已经改好，关联可以之后在界面上手工补
+        console.warn(`[dsh-personal-workbench] migration 21: 回填跳过 —— ${error instanceof Error ? error.message : String(error)}`)
       }
     },
   },

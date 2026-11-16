@@ -97,6 +97,18 @@ ${panelContainerCss({ view: VIEW_ATTR, official: OFFICIAL_ATTR, active: ACTIVE_A
 .wb-nav > :first-child:not(.wb-stats-sticky) { margin-top:16px; }
 .wb-detail { flex:1; min-width:0; overflow:auto; padding:16px 18px; box-sizing:border-box; }
 .wb-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+/* ---- 今天的课（今日视图，schema 20）：统计卡下方、容量卡上方 ---- */
+.wb-today-courses { margin:0 0 12px; border:1px solid var(--dsw-alias-border-l1, rgba(127,127,127,.2)); border-radius:12px; padding:10px 12px; background:var(--dsw-alias-bg-layer-1, rgba(255,255,255,.02)); }
+.wb-today-courses-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+.wb-today-courses-head h3 { margin:0; font-size:15px; font-weight:600; }
+.wb-today-next { font-size:12px; color:var(--dsw-alias-label-secondary); }
+.wb-today-next.ongoing { color:var(--dsw-alias-state-business-primary, #4f8ef7); font-weight:600; }
+.wb-today-course-list { display:flex; flex-direction:column; gap:4px; }
+.wb-today-course { display:grid; grid-template-columns:104px minmax(0,1fr) auto; align-items:center; gap:10px; padding:7px 8px; border-radius:8px; background:color-mix(in srgb, var(--dsw-alias-bg-base, #111) 45%, transparent); }
+.wb-today-course.ongoing { box-shadow: inset 3px 0 0 var(--dsw-alias-state-business-primary, #4f8ef7); background:color-mix(in srgb, var(--dsw-alias-state-business-primary, #4f8ef7) 10%, transparent); }
+.wb-today-course-time { font-size:12px; color:var(--dsw-alias-label-secondary); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.wb-today-course-name { font-size:15px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wb-today-course-place { font-size:12px; color:var(--dsw-alias-label-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:46%; }
 .wb-stat { border:1px solid var(--dsw-alias-border-l1, rgba(127,127,127,.20)); background:var(--dsw-alias-bg-layer-1, rgba(255,255,255,.03)); border-radius:12px; padding:12px 14px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
 .wb-stat b { font-size:20px; }
 .wb-stat span { display:block; color:var(--dsw-alias-label-secondary); font-size:12px; }
@@ -368,6 +380,45 @@ ${panelContainerCss({ view: VIEW_ATTR, official: OFFICIAL_ATTR, active: ACTIVE_A
 .wb-mday.other { opacity:.35; }
 .wb-mday.today { border-color: var(--dsw-alias-state-business-primary, #4f8ef7); }
 .wb-mday.selected { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #4f8ef7) 12%, transparent); }
+/* ---- 课表（schema 20）：周几 × 节次网格，一比一复刻企业微信课表 ---- */
+/* 字号按用户 2026-11-12 反馈整体放大（原 8/10/11/12px → 10/12/13/14px），
+   行高同步从 56px 提到 66px，否则三行课程块会挤成一团。 */
+.wb-tt-title { flex:1; display:flex; flex-direction:column; align-items:center; gap:1px; line-height:1.2; }
+.wb-tt-week-no { font-weight:600; font-size:15px; }
+.wb-tt-week-range { font-size:12px; color:var(--dsw-alias-label-secondary); font-variant-numeric:tabular-nums; }
+.wb-tt-scroll { overflow:auto; max-height:min(70vh, 760px); border:1px solid var(--dsw-alias-border-l1, rgba(127,127,127,.18)); border-radius:12px; padding:6px; background:var(--dsw-alias-bg-layer-1, rgba(255,255,255,.02)); }
+.wb-tt-grid { display:grid; grid-template-columns:58px repeat(7, minmax(0, 1fr)); gap:2px; }
+.wb-tt-corner { }
+.wb-tt-head { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; border:0; border-radius:8px; background:transparent; color:inherit; cursor:pointer; padding:2px; font:inherit; }
+.wb-tt-head:hover { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #4f8ef7) 8%, transparent); }
+.wb-tt-head.today { color:var(--dsw-alias-state-business-primary, #4f8ef7); }
+.wb-tt-head.today .wb-tt-weekday, .wb-tt-head.today .wb-tt-date { font-weight:700; }
+.wb-tt-weekday { font-size:14px; font-weight:600; }
+.wb-tt-date { font-size:12px; color:var(--dsw-alias-label-secondary); font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; gap:3px; }
+.wb-tt-head.today .wb-tt-date { color:inherit; }
+.wb-tt-taskdot { display:inline-flex; align-items:center; justify-content:center; min-width:15px; height:15px; padding:0 3px; border-radius:8px; background:#e86363; color:#fff; font-size:10px; font-weight:700; line-height:1; }
+.wb-tt-section { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; color:var(--dsw-alias-label-secondary); }
+.wb-tt-section-no { font-size:13px; font-weight:600; }
+.wb-tt-section-time { font-size:10px; opacity:.8; font-variant-numeric:tabular-nums; white-space:nowrap; line-height:1.15; }
+.wb-tt-cell { border:1px dashed color-mix(in srgb, var(--dsw-alias-border-l1, rgba(127,127,127,.18)) 70%, transparent); border-radius:6px; background:transparent; cursor:pointer; padding:0; transition:background .1s ease, border-color .1s ease; }
+.wb-tt-cell:hover { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #4f8ef7) 14%, transparent); border-color:var(--dsw-alias-state-business-primary, #4f8ef7); }
+.wb-tt-cell.today { background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #4f8ef7) 5%, transparent); }
+.wb-tt-slot { position:relative; min-height:0; z-index:1; }
+.wb-tt-course { position:absolute; top:2px; bottom:2px; border:0; border-radius:8px; color:#fff; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:4px 4px; overflow:hidden; text-align:center; font:inherit; box-shadow:0 1px 3px rgba(0,0,0,.18); transition:transform .12s ease, box-shadow .12s ease, filter .12s ease; }
+.wb-tt-course:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.28); filter:brightness(1.05); }
+.wb-tt-course:active { transform:translateY(0); }
+.wb-tt-course:focus-visible { outline:2px solid var(--dsw-alias-state-business-primary, #4f8ef7); outline-offset:1px; }
+.wb-tt-course-name { font-size:14px; font-weight:700; line-height:1.2; word-break:break-all; }
+.wb-tt-course-meta { font-size:12px; line-height:1.2; opacity:.92; word-break:break-all; }
+.wb-tt-empty { margin-top:8px; padding:14px; border:1px dashed var(--dsw-alias-border-l1, rgba(127,127,127,.25)); border-radius:10px; color:var(--dsw-alias-label-secondary); font-size:13px; text-align:center; }
+.wb-tt-hint { margin-top:8px; font-size:12px; color:var(--dsw-alias-label-secondary); }
+/* ---- 课程弹窗里的「这门课的任务」（schema 21 结构化关联） ---- */
+.wb-course-tasks { margin-top:12px; border-top:1px solid var(--dsw-alias-border-l1, rgba(127,127,127,.18)); padding-top:10px; }
+.wb-course-tasks-head { font-size:12px; font-weight:600; color:var(--dsw-alias-label-secondary); margin-bottom:6px; }
+.wb-course-task { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; border:1px solid transparent; background:color-mix(in srgb, var(--dsw-alias-bg-base, #111) 45%, transparent); border-radius:8px; padding:7px 9px; margin-bottom:4px; cursor:pointer; font:inherit; color:inherit; text-align:left; }
+.wb-course-task:hover { border-color:var(--dsw-alias-state-business-primary, #4f8ef7); background:color-mix(in srgb, var(--dsw-alias-state-business-primary, #4f8ef7) 8%, transparent); }
+.wb-course-task-title { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wb-course-task-meta { font-size:11px; color:var(--dsw-alias-label-secondary); white-space:nowrap; font-variant-numeric:tabular-nums; }
 .wb-form { display:grid; grid-template-columns:1fr 1fr; gap:10px; border:1px solid var(--dsw-alias-border-l1, rgba(255,255,255,.12)); border-radius:10px; padding:12px; }
 .wb-form-panel { border:1px solid color-mix(in srgb, var(--dsw-alias-state-business-primary, #8fa8c8) 45%, transparent) !important; border-left:4px solid var(--dsw-alias-state-business-primary, #8fa8c8) !important; border-radius:14px !important; padding:16px !important; background: color-mix(in srgb, var(--dsw-alias-state-business-primary, #8fa8c8) 8%, var(--dsw-alias-bg-base, #111)) !important; box-shadow:0 10px 28px rgba(0,0,0,.15); margin-bottom:12px; }
 .wb-form-panel h4 { margin:0 0 10px; font-size:15px; color:var(--dsw-alias-label-primary); display:flex; align-items:center; gap:8px; }

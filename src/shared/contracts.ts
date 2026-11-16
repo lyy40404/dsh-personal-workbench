@@ -53,6 +53,8 @@ export interface PublicTask {
    * 旧客户端不认识这个字段时不传也不影响读写（遗漏字段仍可操作）。
    */
   progressPercent: number
+  /** 所属课程 id（schema 21 起；可空）。删课时由外键置 NULL。 */
+  courseId: string | null
   archived: number
   extra: Record<string, unknown>
   recurrenceCode: string | null

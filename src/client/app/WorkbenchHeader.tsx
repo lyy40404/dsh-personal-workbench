@@ -26,6 +26,7 @@ export function WorkbenchHeader(props: WorkbenchAssembly): JSX.Element {
         <div className="wb-segmented">
           <button className={`wb-seg ${view === 'today' ? 'on' : ''}`} onClick={() => setView('today')}><Icon name="today" />{t('今日')}</button>
           <button className={`wb-seg ${view === 'calendar' ? 'on' : ''}`} onClick={() => setView('calendar')}><Icon name="calendar" />{t('日历')}</button>
+          <button className={`wb-seg ${view === 'timetable' ? 'on' : ''}`} onClick={() => setView('timetable')}><Icon name="list" />{t('课表')}</button>
           <button className={`wb-seg ${view === 'list' ? 'on' : ''}`} onClick={() => setView('list')}><Icon name="list" />{t('任务')}</button>
           <button className={`wb-seg ${view === 'knowledge' ? 'on' : ''}`} onClick={() => setView('knowledge')}><Icon name="book" />{t('知识库')}</button>
           <button className={`wb-seg ${view === 'ideas' ? 'on' : ''}`} onClick={() => setView('ideas')}><Icon name="idea" />{t('点子')}</button>

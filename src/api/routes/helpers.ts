@@ -49,6 +49,7 @@ export function clampEstimateForStorage(value: unknown): number | null {
 
 export const TASKS_PREFIX = '/api/workbench/tasks'
 export const DRAFTS_PREFIX = '/api/workbench/drafts'
+export const COURSES_PREFIX = '/api/workbench/courses'
 export const REMINDERS_PREFIX = '/api/workbench/reminders'
 export const PLANS_PREFIX = '/api/workbench/plans'
 export const REPORTS_PREFIX = '/api/workbench/reports'
@@ -211,6 +212,7 @@ export function taskInputFromBody(body: Record<string, unknown>): TaskInput {
     parentId: body.parentId === null ? null : str('parentId'),
     workspacePath: body.workspacePath === null ? null : str('workspacePath'),
     extra: typeof body.extra === 'object' && body.extra !== null ? body.extra as Record<string, unknown> : undefined,
+    courseId: typeof body.courseId === 'string' ? body.courseId : body.courseId === null ? null : undefined,
     recurrenceCode: recurrenceCode ?? null,
     recurrenceRule: recurrenceCode !== undefined && recurrenceCode !== 'none' ? recurrenceRule ?? defaultRecurrenceRule(recurrenceCode, str('dueAt')) : recurrenceRule,
   }

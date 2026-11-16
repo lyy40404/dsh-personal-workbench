@@ -128,7 +128,7 @@ export function TaskDetailPane({
               onClick={archiveSelectedTask}
             ><Icon name="archive" />{t('归档')}</button>
           )}
-          {!selected.task.archived && <button className="wb-btn" onClick={() => onOpenEdit({ title: selected.task.title, description: selected.task.description, typeCode: selected.task.typeCode, priorityCode: selected.task.priorityCode, statusCode: selected.task.statusCode, aiPolicyCode: selected.task.aiPolicyCode, dueLocal: toLocalInput(selected.task.dueAt), workspacePath: selected.task.workspacePath ?? '', recurrenceCode: selected.task.recurrenceCode ?? 'none', parentId: selected.task.parentId ?? '', estimatedMinutes: selected.task.estimatedMinutes === null ? '' : String(selected.task.estimatedMinutes), allDay: selected.task.allDay })}><Icon name="edit" />{t('编辑')}</button>}
+          {!selected.task.archived && <button className="wb-btn" onClick={() => onOpenEdit({ title: selected.task.title, description: selected.task.description, typeCode: selected.task.typeCode, priorityCode: selected.task.priorityCode, statusCode: selected.task.statusCode, aiPolicyCode: selected.task.aiPolicyCode, dueLocal: toLocalInput(selected.task.dueAt), workspacePath: selected.task.workspacePath ?? '', recurrenceCode: selected.task.recurrenceCode ?? 'none', parentId: selected.task.parentId ?? '', estimatedMinutes: selected.task.estimatedMinutes === null ? '' : String(selected.task.estimatedMinutes), allDay: selected.task.allDay, courseId: selected.task.courseId ?? '' })}><Icon name="edit" />{t('编辑')}</button>}
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '8px 0' }}>
           <Badge dict={dictOf('type')} code={selected.task.typeCode} />

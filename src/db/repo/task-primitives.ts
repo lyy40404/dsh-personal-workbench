@@ -24,6 +24,8 @@ export interface RawTaskRow {
   workspace_path: string | null
   /** 显式进度 0–99（迁移 19 起；旧行由 DEFAULT 0 补齐）。 */
   progress_percent: number
+  /** 所属课程（迁移 21 起；可空，删课时置 NULL）。 */
+  course_id: string | null
   archived: number
   extra: string
   recurrence_code: string | null
@@ -142,6 +144,7 @@ export function parseTask(row: RawTaskRow | undefined, db?: DatabaseSync): TaskR
     source: row.source,
     workspacePath: row.workspace_path,
     progressPercent: typeof row.progress_percent === 'number' ? row.progress_percent : 0,
+    courseId: row.course_id ?? null,
     effectiveWorkspacePath: db === undefined
       ? row.workspace_path
       : effectiveWorkspacePathForTask(db, { id: row.id, parentId: row.parent_id, workspacePath: row.workspace_path }),

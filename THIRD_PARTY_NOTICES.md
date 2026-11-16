@@ -82,6 +82,23 @@ The remaining built-in personas (`反向验证者`, `只读审查者`, `实现�
 
 ---
 
+### 4. 本项目原创（学业类，2026-11-12 新增）
+
+Six personas under the `study/` and `writing/` areas are **original works of this
+project** — no third-party upstream, no copyright notice to carry. They are listed here
+because everything under the domain area is expected to have its provenance on record,
+including "written here": a future maintainer must be able to tell an original file from
+a vendored one without reading git history.
+
+| Bundled file | Persona |
+|---|---|
+| `assets/personas/study/高数离散教练.md` | 高数离散教练 |
+| `assets/personas/study/英语陪练.md` | 英语陪练 |
+| `assets/personas/study/编程调试助教.md` | 编程调试助教 |
+| `assets/personas/study/期末复习教练.md` | 期末复习教练 |
+| `assets/personas/study/课程项目规划师.md` | 课程项目规划师 |
+| `assets/personas/writing/学术写作指导.md` | 学术写作指导 |
+
 ## dsh-task-board (part of dsh-web-ui)
 
 - Repository: https://github.com/zhu1090093659/dsh-web-ui

@@ -66,6 +66,8 @@ export interface TaskInput {
   recurrenceCode?: string | null
   recurrenceRule?: Record<string, unknown>
   recurrenceMasterId?: string | null
+  /** 所属课程 id（可空）。路由层校验存在性，仓储层只落库。 */
+  courseId?: string | null
 }
 
 export interface TaskPatch {
@@ -93,6 +95,8 @@ export interface TaskPatch {
   extra?: Record<string, unknown>
   recurrenceCode?: string | null
   recurrenceRule?: Record<string, unknown>
+  /** 所属课程：undefined = 不变，null = 解除关联，字符串 = 关联到该课程。 */
+  courseId?: string | null
 }
 
 export interface TaskRow {
@@ -115,6 +119,8 @@ export interface TaskRow {
   effectiveWorkspacePath: string | null
   /** 显式进度 0–99（写入口只有 `repo/progress.ts`；DRL 的 CHECK 是最后防线）。 */
   progressPercent: number
+  /** 所属课程（迁移 21 起；可空）。删课时由外键置 NULL，不会连带删任务。 */
+  courseId: string | null
   archived: number
   extra: Record<string, unknown>
   recurrenceCode: string | null
@@ -258,3 +264,10 @@ export type {
   CreateExpertDraftInput, CreateExpertDraftResult, ExpertDraftPatch, UpdateExpertDraftCasResult,
   ExpertDraftStatus,
 } from './repo/experts.js'
+
+// 课表域已抽到 repo/courses.ts（schema 20：节次网格课程，与任务域没有共享判定）
+export {
+  listCourses, getCourse, createCourse, updateCourse, deleteCourse, findCourseConflicts,
+  MAX_SECTIONS_PER_DAY, MAX_SECTION_SPAN, MAX_WEEK,
+} from './repo/courses.js'
+export type { CourseInput, CoursePatch, CourseRow } from './repo/courses.js'

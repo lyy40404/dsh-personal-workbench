@@ -90,7 +90,12 @@ const GENERIC_EXPECTED = [
   ['generic/quality/测试工程师', '测试工程师'],
 ]
 
-/** 领域角色：9 篇，逐条对齐 `THIRD_PARTY_NOTICES.md` §Bundled expert personas 的两张表。 */
+/**
+ * 领域角色：15 篇。
+ *
+ * 前 9 篇逐条对齐 `THIRD_PARTY_NOTICES.md` §Bundled expert personas 的两张表；
+ * 后 6 篇是 2026-11-12 新增的学业类（原创，不涉及第三方许可与署名）。
+ */
 const DOMAIN_EXPECTED = [
   ['domain/engineering/高级-dotnet-blazor-工程师', '高级 .NET / Blazor 工程师'],
   ['domain/engineering/dotnet-代码审查官', '.NET 代码审查官'],
@@ -101,11 +106,17 @@ const DOMAIN_EXPECTED = [
   ['domain/engineering/rf-仪表回路与测量链', '仪表回路与测量链专家'],
   ['domain/testing/rf-测量不确定度预算', '测量不确定度预算专家'],
   ['domain/testing/rf-计量溯源与校准', '计量溯源与校准专家'],
+  ['domain/study/高数离散教练', '高数离散教练'],
+  ['domain/study/英语陪练', '英语陪练'],
+  ['domain/study/编程调试助教', '编程调试助教'],
+  ['domain/study/期末复习教练', '期末复习教练'],
+  ['domain/study/课程项目规划师', '课程项目规划师'],
+  ['domain/writing/学术写作指导', '学术写作指导'],
 ]
 
 const BUILTIN_EXPECTED = [...GENERIC_EXPECTED, ...DOMAIN_EXPECTED]
 
-test('AX-R08 内置角色库清单精确（6 通用 + 9 领域），且随包可解析（H1 + 元信息块 + 1–20000 字符正文）', async () => {
+test('AX-R08 内置角色库清单精确（6 通用 + 15 领域），且随包可解析（H1 + 元信息块 + 1–20000 字符正文）', async () => {
   const { readdirSync, readFileSync, statSync } = await import('node:fs')
   const { join } = await import('node:path')
   const { parsePersonaDocument } = await import('../lib/personas/parse.js')

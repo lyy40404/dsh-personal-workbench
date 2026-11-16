@@ -6,7 +6,7 @@ import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
 import type { DatabaseSync } from 'node:sqlite'
 import {
   addReminder, addTaskMemory, archiveTask, completeTaskCascade, createTask, createTaskReview, ensureRecurringInstances,
-  getDictionary, getTask, getTaskMemoryContext, getTaskRootId, getTaskPendingCompletion, linkTaskSession, listArchivedTasks, listChildren, listPendingCompletions, listReminders, listTaskEvents,
+  getCourse, getDictionary, getTask, getTaskMemoryContext, getTaskRootId, getTaskPendingCompletion, linkTaskSession, listArchivedTasks, listChildren, listPendingCompletions, listReminders, listTaskEvents,
   listTaskMemories, listTaskReviews, listTaskSessions, listTasks, repairParentCompletion, restoreTask, updateTask, updateTaskWithCompletion,
 } from '../../db/repo.js'
 import { checkProgressInput } from '../../shared/taskProgress.js'
@@ -120,6 +120,22 @@ export function makeTaskRoutes(db: DatabaseSync): WebRoute[] {
             if (body.allDay === true || body.allDay === false) patch.allDay = body.allDay
             if ('estimatedMinutes' in body) patch.estimatedMinutes = clampEstimateForStorage(body.estimatedMinutes)
             if (body.archived === true || body.archived === false) patch.archived = body.archived
+            /**
+             * 所属课程（schema 21）：null = 解除关联，字符串 = 关联到该课程。
+             *
+             * 这里**显式校验课程存在**：SQLite 的外键约束默认不强制，
+             * 不校验就会留下指向已删课程的悬空 id（界面上表现为"关联了但点不开"）。
+             */
+            if ('courseId' in body) {
+              if (typeof body.courseId === 'string') {
+                if (getCourse(db, body.courseId) === undefined) {
+                  return writeJson(res, 400, { error: `课程不存在：${body.courseId}` })
+                }
+                patch.courseId = body.courseId
+              } else {
+                patch.courseId = null
+              }
+            }
             if ('workspacePath' in body) patch.workspacePath = typeof body.workspacePath === 'string' ? body.workspacePath : null
             // 改父任务：string = 挂到该父任务下；null / 空串 = 移到顶层。
             // 存在性、归档与防环校验都在仓储层（updateTask），抛出的中文原因由下面的 catch 统一转 400。

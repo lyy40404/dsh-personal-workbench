@@ -116,8 +116,8 @@ test('D17/P3-2：三个语义动作只有一份实现，「两连 setState」不
 })
 
 test('D17/P3-2：两份匿名类型收进 app/contracts.ts，入口不再内联', () => {
-  assert.match(contractsSource, /export type WorkbenchView = 'today' \| 'calendar' \| 'list' \| 'knowledge' \| 'ideas'/,
-    'WorkbenchView 与拆分前的内联联合类型逐字一致')
+  assert.match(contractsSource, /export type WorkbenchView = 'today' \| 'calendar' \| 'timetable' \| 'list' \| 'knowledge' \| 'ideas'/,
+    'WorkbenchView 是视图集合的唯一声明（timetable 为 schema 20 新增）')
   assert.match(contractsSource, /export interface TaskEditDraft \{/)
   for (const field of ['title', 'description', 'typeCode', 'priorityCode', 'statusCode', 'aiPolicyCode',
     'dueLocal', 'workspacePath', 'recurrenceCode', 'parentId', 'estimatedMinutes', 'allDay']) {

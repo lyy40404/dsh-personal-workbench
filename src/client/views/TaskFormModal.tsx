@@ -31,7 +31,7 @@ import { Modal } from '../components/Modal.js'
 import { Icon } from '../components/Icon.js'
 import { WorkspacePicker } from '../components/WorkspacePicker.js'
 import type { WorkspaceCandidate } from '../workspacePicker.js'
-import type { Dict } from '../viewTypes.js'
+import type { Course, Dict } from '../viewTypes.js'
 import type { TaskEditDraft } from '../app/contracts.js'
 import { useI18n } from '../i18n.js'
 
@@ -55,12 +55,14 @@ export type TaskCreateModalProps = {
   onFormWorkspaceChange: (path: string) => void
   /** 「浏览…」：由入口按入口身份分流（表单 / 编辑 / 快速录入共用一份目录弹窗）。 */
   onBrowseWorkspace: () => void
+  /** 课表里的课程（schema 21）：可选项，用来把作业挂到某门课下。 */
+  courses: readonly Course[]
   busy: boolean
 }
 
 export function TaskCreateModal({
   open, onClose, onSubmit, dictOf, defaultEstimateMinutes, defaultWorkspace,
-  workspaceChoices, formWorkspace, onFormWorkspaceChange, onBrowseWorkspace, busy,
+  workspaceChoices, formWorkspace, onFormWorkspaceChange, onBrowseWorkspace, courses, busy,
 }: TaskCreateModalProps): JSX.Element | null {
   const { t } = useI18n()
   if (!open) return null
@@ -78,6 +80,14 @@ export function TaskCreateModal({
         <label>{t('状态')}<select name="status" defaultValue="todo">{dictOf('status').map((d) => <option key={d.code} value={d.code}>{d.name}</option>)}</select></label>
         <label>{t('截止时间')}<input name="due" type="datetime-local" /></label>
         <label>{t('重复')}<select name="recurrence" defaultValue="none">{dictOf('recurrence').map((d) => <option key={d.code} value={d.code}>{d.name}</option>)}</select></label>
+        {/* 所属课程（schema 21）：课表里点这门课就能看到这条作业 */}
+        <label>
+          {t('所属课程')}
+          <select name="courseId" defaultValue="">
+            <option value="">{t('（不关联）')}</option>
+            {courses.map((course) => <option key={course.id} value={course.id}>{course.name}{course.location !== '' ? ` · ${course.location}` : ''}</option>)}
+          </select>
+        </label>
         {/* 与编辑弹窗同一套字段与文案：同一字段两个入口两套说法 = 迟早打架 */}
         <label>{t('耗时（分钟）')}<input name="estimatedMinutes" type="number" min={1} max={1440} step={5} placeholder={t('留空 = 默认 {n} 分钟', { n: defaultEstimateMinutes })} /></label>
         <label style={{ alignSelf: 'end' }}>
@@ -137,11 +147,13 @@ export type TaskEditModalProps = {
   busy: boolean
   /** 「父任务」下拉的候选（入口那个 `reparentCandidates` 派生，已排除自身与后代）。 */
   reparentCandidates: Array<{ id: string; title: string; depth: number }>
+  /** 课表里的课程（schema 21）。 */
+  courses: readonly Course[]
 }
 
 export function TaskEditModal({
   draft, recurrenceMasterId, onClose, onSave, onPatchDraft, dictOf, defaultEstimateMinutes,
-  defaultWorkspace, workspaceChoices, onBrowseWorkspace, busy, reparentCandidates,
+  defaultWorkspace, workspaceChoices, onBrowseWorkspace, busy, reparentCandidates, courses,
 }: TaskEditModalProps): JSX.Element {
   const { t } = useI18n()
   return (
@@ -168,6 +180,14 @@ export function TaskEditModal({
           ? <label>{t('重复')}<select value={draft.recurrenceCode} onChange={(e) => onPatchDraft({ recurrenceCode: e.target.value })}>{dictOf('recurrence').map((d) => <option key={d.code} value={d.code}>{d.name}</option>)}</select></label>
           : <div style={{ fontSize: 12, color: '#999', alignSelf: 'center' }}>{t('重复：由模板任务管理')}</div>}
         <label>{t('截止时间')}<input type="datetime-local" value={draft.dueLocal} onChange={(e) => onPatchDraft({ dueLocal: e.target.value })} /></label>
+        {/* 所属课程（schema 21）：空 = 不关联；挂上后课表点这门课就能看到它 */}
+        <label>
+          {t('所属课程')}
+          <select value={draft.courseId} onChange={(e) => onPatchDraft({ courseId: e.target.value })}>
+            <option value="">{t('（不关联）')}</option>
+            {courses.map((course) => <option key={course.id} value={course.id}>{course.name}{course.location !== '' ? ` · ${course.location}` : ''}</option>)}
+          </select>
+        </label>
         {/* ---------------- 预计耗时 / 全天任务（v1.15.1） ---------------- */}
         <label>{t('耗时（分钟）')}<input type="number" min={1} max={1440} step={5} value={draft.estimatedMinutes} placeholder={t('留空 = 默认 {n} 分钟', { n: defaultEstimateMinutes })} onChange={(e) => onPatchDraft({ estimatedMinutes: e.target.value })} /></label>
         <label style={{ alignSelf: 'end' }}>

@@ -485,7 +485,6 @@ export const EN_MESSAGES: Record<string, string> = {
   '领域岗位': 'Domain roles',
   // ── 入口（侧栏面板行 / 会话标题栏按钮） ────────────────────────────────────
   '工作台': 'Workbench',
-  '打开工作台（任务 / 日历 / 知识库 / 点子）': 'Open Workbench (tasks / calendar / knowledge / ideas)',
   '收起工作台': 'Close Workbench',
   // ── 待处理草稿横幅：验收 / 复盘 / 团队记忆 / 点子 / 报告 / 计划 / 拆解 ────────────────────────────────────
   '{n} 分钟': '{n} min',
